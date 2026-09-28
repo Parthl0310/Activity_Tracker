@@ -15,10 +15,28 @@ import { config } from './config/env.js';
 export function createApp(): Application {
   const app = express();
 
-  // Global Middlewares
+  // Global Middlewares - CORS with support for local dev, custom domain, and Vercel preview URLs
+  const allowedOrigins = [
+    config.frontendUrl,
+    config.frontendUrl.replace(/\/$/, ''),
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ];
+
   app.use(
     cors({
-      origin: config.frontendUrl,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app') ||
+          origin === config.frontendUrl
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       credentials: true,
     })
   );

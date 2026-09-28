@@ -1,4 +1,9 @@
-import { pipeline, type FeatureExtractionPipeline } from "@xenova/transformers";
+import { pipeline, env, type FeatureExtractionPipeline } from "@xenova/transformers";
+
+// In serverless environments (e.g. Vercel, AWS Lambda), ensure cache directory is writable (/tmp)
+if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  env.cacheDir = '/tmp/.cache';
+}
 
 // Cache the extractor in memory so it's only loaded once per process.
 let extractor: FeatureExtractionPipeline | null = null;

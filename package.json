@@ -5,5 +5,10 @@
   "workspaces": [
     "backend",
     "ai-model"
-  ]
+  ],
+  "scripts": {
+    "build:ai": "npm run build --workspace=ai-model",
+    "build:backend": "npm run build --workspace=backend",
+    "build": "npm run build:ai && npm run build:backend"
+  }
 }
