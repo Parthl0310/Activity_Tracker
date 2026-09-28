@@ -1,0 +1,1084 @@
+{
+  "info": {
+    "_postman_id": "99f46b9a-4c28-4e1b-b4a1-f3bfa6f59da1",
+    "name": "Activity Tracker - Full API (Complete Test Suite)",
+    "description": "Comprehensive automated test suite for Activity Tracker backend covering Auth, Profile, Activities, Goals, Insights, Summaries, and Yearly Reports with positive & negative flows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Health status is ok\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql(\"ok\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth Module",
+      "item": [
+        {
+          "name": "2.1 User Signup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var timestamp = Date.now();",
+                  "pm.environment.set(\"testEmail\", \"testuser_\" + timestamp + \"@example.com\");",
+                  "pm.environment.set(\"testPassword\", \"Password@123\");"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Signup returns user and tokens\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.have.property(\"tokens\");",
+                  "    pm.expect(res.data.tokens).to.have.property(\"accessToken\");",
+                  "    pm.expect(res.data.tokens).to.have.property(\"refreshToken\");",
+                  "    pm.environment.set(\"accessToken\", res.data.tokens.accessToken);",
+                  "    pm.environment.set(\"refreshToken\", res.data.tokens.refreshToken);",
+                  "    pm.environment.set(\"userId\", res.data.user.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alex Developer\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "2.2 User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Login returns tokens\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.tokens).to.have.property(\"accessToken\");",
+                  "    pm.environment.set(\"accessToken\", res.data.tokens.accessToken);",
+                  "    pm.environment.set(\"refreshToken\", res.data.tokens.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "2.3 Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Returns new tokens\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.tokens).to.have.property(\"accessToken\");",
+                  "    pm.expect(res.data.tokens).to.have.property(\"refreshToken\");",
+                  "    pm.environment.set(\"accessToken\", res.data.tokens.accessToken);",
+                  "    pm.environment.set(\"refreshToken\", res.data.tokens.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Profile Module",
+      "item": [
+        {
+          "name": "3.1 Setup Profile (First Time)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Profile setup marked completed\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.profile.profileCompleted).to.be.true;",
+                  "    pm.expect(res.data.profile.jobRole).to.eql(\"Senior Fullstack Engineer\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobRole\": \"Senior Fullstack Engineer\",\n  \"department\": \"Platform Engineering\",\n  \"reviewYear\": 2026,\n  \"skills\": [\"Node.js\", \"TypeScript\", \"MongoDB\", \"Redis\", \"Docker\"],\n  \"currentProjects\": [\"Activity Tracker\", \"Performance Hub\"],\n  \"joiningDate\": \"2024-01-15\",\n  \"professionalBackground\": \"5 years experience designing scalable backend architectures.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile/setup",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "setup"]
+            }
+          }
+        },
+        {
+          "name": "3.2 Get Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Contains complete profile details\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.profile.email).to.eql(pm.environment.get(\"testEmail\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Activities Module",
+      "item": [
+        {
+          "name": "4.1 Create Activity (Technical / Bug Fix)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Activity created and activityId saved\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.activity.id).to.be.a(\"string\");",
+                  "    pm.environment.set(\"activityId\", jsonData.data.activity.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Fixed race condition in authentication token refresh handler\",\n  \"workDate\": \"2026-08-24T10:00:00.000Z\",\n  \"project\": \"Auth Module\",\n  \"category\": \"Bug Fix\",\n  \"skills\": [\"TypeScript\", \"Node.js\", \"Redis\", \"JWT\"],\n  \"keywords\": [\"token\", \"race-condition\", \"refresh\"],\n  \"workType\": \"Technical\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/activities",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities"]
+            }
+          }
+        },
+        {
+          "name": "4.2 Create Activity (Feature / Reporting)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Implemented MongoDB compound aggregation pipelines for monthly histograms and skill frequencies\",\n  \"workDate\": \"2026-08-24T14:30:00.000Z\",\n  \"project\": \"Reporting Engine\",\n  \"category\": \"Feature\",\n  \"skills\": [\"MongoDB\", \"Mongoose\", \"Aggregation Pipelines\"],\n  \"keywords\": [\"performance\", \"histogram\", \"analytics\"],\n  \"workType\": \"Technical\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/activities",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities"]
+            }
+          }
+        },
+        {
+          "name": "4.3 List Activities (Paginated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"List contains activities and pagination\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.activities).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/activities?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Achieved Goals Module",
+      "item": [
+        {
+          "name": "5.1 Create Achieved Goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Goal created and goalId set in environment\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.environment.set(\"goalId\", jsonData.data.goal.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Launched Multi-Document Session Store & Token Rotation\",\n  \"description\": \"Designed and completed JWT auth token revocation mechanism.\",\n  \"completedAt\": \"2026-08-24T15:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/achieved-goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["achieved-goals"]
+            }
+          }
+        },
+        {
+          "name": "5.2 Link Activity to Goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activityIds\": [\"{{activityId}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/achieved-goals/{{goalId}}/link-activities",
+              "host": ["{{baseUrl}}"],
+              "path": ["achieved-goals", "{{goalId}}", "link-activities"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Insights & Analytics Module",
+      "item": [
+        {
+          "name": "6.1 Get Yearly Overview (Aggregation Pipeline)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Overview response contains histogram, skills, and categories\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.totalActivities).to.be.at.least(1);",
+                  "    pm.expect(res.data.monthlyHistogram).to.be.an(\"array\").with.lengthOf(12);",
+                  "    pm.expect(res.data.topSkills).to.be.an(\"array\");",
+                  "    pm.expect(res.data.categoryDistribution).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insights/overview?year={{reportYear}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["insights", "overview"],
+              "query": [{ "key": "year", "value": "{{reportYear}}" }]
+            }
+          }
+        },
+        {
+          "name": "6.2 Get AI Insights Narrative",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"AI Insights contains strongest work area and narrative\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.strongestWorkArea).to.be.a(\"string\");",
+                  "    pm.expect(res.data.workPatternSummary).to.be.a(\"string\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insights/ai?year={{reportYear}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["insights", "ai"],
+              "query": [{ "key": "year", "value": "{{reportYear}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Summaries Module",
+      "item": [
+        {
+          "name": "7.1 Generate Weekly Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Weekly summary generated and saved\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.summary.id).to.be.a(\"string\");",
+                  "    pm.environment.set(\"weeklySummaryId\", res.data.summary.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weekStart\": \"2026-08-24T00:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/summaries/weekly/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["summaries", "weekly", "generate"]
+            }
+          }
+        },
+        {
+          "name": "7.2 Get Weekly Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summaries/weekly?weekStart=2026-08-24T00:00:00.000Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["summaries", "weekly"],
+              "query": [{ "key": "weekStart", "value": "2026-08-24T00:00:00.000Z" }]
+            }
+          }
+        },
+        {
+          "name": "7.3 Edit Weekly Summary (Sets status to edited)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Status changed to edited\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.data.summary.status).to.eql(\"edited\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aiInsight\": \"Employee reviewed and manually updated: Delivered core system design milestones.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/summaries/weekly/{{weeklySummaryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["summaries", "weekly", "{{weeklySummaryId}}"]
+            }
+          }
+        },
+        {
+          "name": "7.4 Generate Monthly Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Monthly summary generated with chunks\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.summary.chunks).to.be.an(\"array\");",
+                  "    pm.environment.set(\"monthlySummaryId\", res.data.summary.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"month\": 8,\n  \"year\": 2026\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/summaries/monthly/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["summaries", "monthly", "generate"]
+            }
+          }
+        },
+        {
+          "name": "7.5 Get Monthly Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summaries/monthly?month=8&year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["summaries", "monthly"],
+              "query": [
+                { "key": "month", "value": "8" },
+                { "key": "year", "value": "2026" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.6 Negative Test: Invalid Month Query (Returns 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summaries/monthly?month=15&year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["summaries", "monthly"],
+              "query": [
+                { "key": "month", "value": "15" },
+                { "key": "year", "value": "2026" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Yearly Reports Module",
+      "item": [
+        {
+          "name": "8.1 Check Availability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Availability stats returned\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.canGenerate).to.be.a(\"boolean\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "availability"]
+            }
+          }
+        },
+        {
+          "name": "8.2 Generate Yearly Report Draft",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"8-section report generated in draft mode\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.data.report.status).to.eql(\"draft\");",
+                  "    pm.expect(res.data.report.report.executiveSummary).to.be.a(\"string\");",
+                  "    pm.expect(res.data.report.report.technicalWork).to.be.a(\"string\");",
+                  "    pm.expect(res.data.report.report.achievedGoals).to.be.a(\"string\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "generate"]
+            }
+          }
+        },
+        {
+          "name": "8.3 Get Active Yearly Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}"]
+            }
+          }
+        },
+        {
+          "name": "8.4 Edit Section (Executive Summary)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Updated section text saved\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.data.report.report.executiveSummary).to.include(\"Custom leadership addendum\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Custom leadership addendum: Successfully steered platform reliability initiatives across all engineering teams.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/section/executiveSummary",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "section", "executiveSummary"]
+            }
+          }
+        },
+        {
+          "name": "8.5 Regenerate Section",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/section/technicalWork/regenerate",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "section", "technicalWork", "regenerate"]
+            }
+          }
+        },
+        {
+          "name": "8.6 Finalize Report (Locks status to final)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Report locked to final status\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.data.report.status).to.eql(\"final\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/finalize",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "finalize"]
+            }
+          }
+        },
+        {
+          "name": "8.7 Negative Test: Edit Finalized Report Fails (Returns 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Attempt to edit locked report\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/section/executiveSummary",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "section", "executiveSummary"]
+            }
+          }
+        },
+        {
+          "name": "8.8 List Report Versions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Version history returned\", function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.data.versions).to.be.an(\"array\").with.lengthOf.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/yearly/{{reportYear}}/versions",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "yearly", "{{reportYear}}", "versions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Logout & Token Invalidation",
+      "item": [
+        {
+          "name": "9.1 User Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "9.2 Verify Revoked Refresh Token Fails (Returns 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

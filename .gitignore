@@ -1,0 +1,14 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+
+# OS Files
+.DS_Store
+Thumbs.db
