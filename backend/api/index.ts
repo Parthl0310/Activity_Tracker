@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { createApp } from '../src/app.js';
-import { connectDatabase } from '../src/config/database.js';
-import { initQueue } from '../src/jobs/queue.js';
-import { enrichmentProcessor } from '../src/jobs/worker.js';
+import { createApp } from '../dist/app.js';
+import { connectDatabase } from '../dist/config/database.js';
+import { initQueue } from '../dist/jobs/queue.js';
+import { enrichmentProcessor } from '../dist/jobs/worker.js';
 
 let appInstance: any = null;
 
@@ -16,6 +16,15 @@ async function getApp() {
 }
 
 export default async function handler(req: Request, res: Response) {
-  const app = await getApp();
-  return app(req, res);
+  try {
+    const app = await getApp();
+    return app(req, res);
+  } catch (err: any) {
+    console.error('[Vercel Handler Error]:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Serverless invocation error',
+      error: err?.message || String(err),
+    });
+  }
 }

@@ -50,12 +50,13 @@ export function createApp(): Application {
     next();
   });
 
-  // Health check (supports both /health and /api/health)
-  app.get(['/health', '/api/health'], (_req: Request, res: Response) => {
+  // Root and Health check (supports /, /health, /api, /api/health)
+  app.get(['/', '/health', '/api', '/api/health'], (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'ok',
-      timestamp: new Date().toISOString(),
       service: 'activity-tracker-api',
+      message: 'Activity Tracker API is running successfully',
+      timestamp: new Date().toISOString(),
     });
   });
 
