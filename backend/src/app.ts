@@ -50,8 +50,8 @@ export function createApp(): Application {
     next();
   });
 
-  // Health check
-  app.get('/health', (_req: Request, res: Response) => {
+  // Health check (supports both /health and /api/health)
+  app.get(['/health', '/api/health'], (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -59,16 +59,21 @@ export function createApp(): Application {
     });
   });
 
-  // Feature Routes
-  app.use('/auth', authRoutes);
-  app.use('/profile', profileRoutes);
-  app.use('/activities', activitiesRoutes);
-  app.use('/achieved-goals', achievedGoalsRoutes);
-  app.use('/insights', insightsRoutes);
-  app.use('/summaries', summariesRoutes);
-  app.use('/reports', reportsRoutes);
-  app.use('/search', searchRoutes);
-  app.use('/assistant', searchRoutes);
+  // Feature Routes (mounted both at root and with /api prefix for Vercel Services / routing compatibility)
+  const mountRoutes = (prefix = '') => {
+    app.use(`${prefix}/auth`, authRoutes);
+    app.use(`${prefix}/profile`, profileRoutes);
+    app.use(`${prefix}/activities`, activitiesRoutes);
+    app.use(`${prefix}/achieved-goals`, achievedGoalsRoutes);
+    app.use(`${prefix}/insights`, insightsRoutes);
+    app.use(`${prefix}/summaries`, summariesRoutes);
+    app.use(`${prefix}/reports`, reportsRoutes);
+    app.use(`${prefix}/search`, searchRoutes);
+    app.use(`${prefix}/assistant`, searchRoutes);
+  };
+
+  mountRoutes('');
+  mountRoutes('/api');
 
   // 404 Route handler
   app.use((_req: Request, res: Response) => {
